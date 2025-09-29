@@ -1,0 +1,143 @@
+import React, { useState } from "react"; import { motion } from "framer-motion";
+
+// DataHaven Quiz - Single-file React component (Tailwind CSS assumed) // Default export a React component. // Features: // - Progress bar, question navigation // - Select answer, immediate visual feedback on selection // - Final score screen with correct answers review // - Simple animations with Framer Motion
+
+const QUESTIONS = [ { id: 1, q: "What is the primary utility of the $HAVE token in DataHaven?", options: [ "Governance only", "Gas fees only", "Storage fees, gas, staking, and governance — all", "Paying storage operators only", ], answer: 2, }, { id: 2, q: "How can $HAVE holders help secure the DataHaven network?", options: [ "By selling tokens", "By delegating tokens to node operators", "By freezing tokens", "By swapping tokens", ], answer: 1, }, { id: 3, q: "How will $GLMR tokens be used within DataHaven?", options: ["They will be burned", "They can be re-staked", "Only for governance", "No utility at all"], answer: 1, }, { id: 4, q: "According to the tokenomics, what is the total Genesis Supply?", options: ["1 Billion", "5 Billion", "10 Billion", "20 Billion"], answer: 2, }, { id: 5, q: "What percentage of tokens is allocated to the Community?", options: ["20%", "50%", "10%", "30%"], answer: 1, }, { id: 6, q: "When does the vesting for Core Team & Contributors begin?", options: ["Immediately at TGE", "After 3 months", "After 9 months", "After 12 months"], answer: 2, }, { id: 7, q: "How many additional tokens (inflation) will be issued in the first year?", options: ["100 Million", "500 Million", "1 Billion", "50 Million"], answer: 1, }, { id: 8, q: "What must storage operators provide in order to run services on DataHaven?", options: ["No guarantee required", "$HAVE tokens as collateral", "Other blockchain tokens", "Land rights"], answer: 1, }, { id: 9, q: "What percentage of tokens will unlock at TGE?", options: ["5%", "11%", "20%", "50%"], answer: 1, }, { id: 10, q: "What governance rights do token holders have?", options: ["Only mint new tokens", "Vote on proposals, set fees, elect council", "Only sell their tokens", "Redeem tokens"], answer: 1, }, ];
+
+export default function DataHavenQuiz() { const [index, setIndex] = useState(0); const [selected, setSelected] = useState(Array(QUESTIONS.length).fill(null)); const [showResults, setShowResults] = useState(false);
+
+const current = QUESTIONS[index];
+
+function chooseOption(i) { const copy = [...selected]; copy[index] = i; setSelected(copy); }
+
+function next() { if (index < QUESTIONS.length - 1) setIndex(index + 1); else setShowResults(true); }
+
+function prev() { if (index > 0) setIndex(index - 1); }
+
+function restart() { setIndex(0); setSelected(Array(QUESTIONS.length).fill(null)); setShowResults(false); }
+
+const score = selected.reduce((acc, s, i) => (s === QUESTIONS[i].answer ? acc + 1 : acc), 0);
+
+return ( <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-white p-6"> <div className="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-6 grid gap-4"> <header className="flex items-center justify-between"> <h1 className="text-2xl font-extrabold">DataHaven Tokenomics Quiz</h1> <div className="text-sm text-slate-500">{QUESTIONS.length} Questions</div> </header>
+
+{!showResults ? (
+      <motion.div
+        key={current.id}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        className="grid gap-4"
+      >
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <div className="text-sm text-slate-500">Question {index + 1} of {QUESTIONS.length}</div>
+            <div className="mt-2 font-semibold text-lg">{current.q}</div>
+          </div>
+          <div className="w-40 text-right text-sm">
+            <div>Progress</div>
+            <div className="h-2 bg-slate-200 rounded-full mt-2 overflow-hidden">
+              <div
+                className="h-full bg-indigo-500 rounded-full"
+                style={{ width: `${((index + 1) / QUESTIONS.length) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          {current.options.map((opt, i) => {
+            const isSelected = selected[index] === i;
+            const isCorrect = current.answer === i;
+            const showCorrectness = isSelected || (selected[index] !== null && isCorrect);
+
+            return (
+              <button
+                key={i}
+                onClick={() => chooseOption(i)}
+                className={`text-left p-3 rounded-2xl border transition-shadow focus:outline-none shadow-sm hover:shadow-md flex items-center justify-between ${
+                  isSelected ? "border-indigo-500 bg-indigo-50" : "border-slate-200 bg-white"
+                }`}
+              >
+                <div>
+                  <div className="font-medium">{String.fromCharCode(65 + i)}. {opt}</div>
+                </div>
+                <div className="ml-4 w-6 text-right">
+                  {showCorrectness ? (
+                    isCorrect ? (
+                      <span className="text-green-600 font-semibold">✓</span>
+                    ) : isSelected ? (
+                      <span className="text-red-600 font-semibold">✕</span>
+                    ) : null
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={prev}
+              className="px-4 py-2 rounded-lg border bg-white text-sm shadow-sm"
+              disabled={index === 0}
+            >
+              Previous
+            </button>
+            <button
+              onClick={next}
+              className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm shadow hover:opacity-95"
+            >
+              {index === QUESTIONS.length - 1 ? "Submit" : "Next"}
+            </button>
+          </div>
+
+          <div className="text-sm text-slate-600">Selected: {selected.filter((s) => s !== null).length}</div>
+        </div>
+      </motion.div>
+    ) : (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid gap-4 py-4">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold">Your Score</h2>
+          <div className="mt-2 text-indigo-600 font-extrabold text-4xl">{score} / {QUESTIONS.length}</div>
+          <div className="mt-2 text-sm text-slate-600">{Math.round((score / QUESTIONS.length) * 100)}% correct</div>
+        </div>
+
+        <div className="grid gap-3">
+          {QUESTIONS.map((q, qi) => {
+            const user = selected[qi];
+            const correct = q.answer;
+            const correctText = q.options[correct];
+            const userText = user !== null ? q.options[user] : "— Not answered —";
+            const isRight = user === correct;
+
+            return (
+              <div key={q.id} className="p-4 border rounded-2xl bg-slate-50">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="font-semibold">Q{qi + 1}. {q.q}</div>
+                    <div className="mt-2 text-sm text-slate-700">Your answer: <span className={isRight ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold'}>{userText}</span></div>
+                    {!isRight && (
+                      <div className="mt-1 text-sm text-slate-600">Correct answer: <span className="font-semibold">{correctText}</span></div>
+                    )}
+                  </div>
+                  <div className="text-sm text-slate-500">{isRight ? 'Correct' : 'Incorrect'}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-center gap-4">
+          <button onClick={restart} className="px-6 py-2 rounded-lg bg-indigo-600 text-white">Retry Quiz</button>
+          <button onClick={() => window.print()} className="px-6 py-2 rounded-lg border">Print / Save</button>
+        </div>
+      </motion.div>
+    )}
+
+    <footer className="text-xs text-slate-400 text-center">Built for practice — adapt questions & styling as needed.</footer>
+  </div>
+</div>
+
+); }
+
